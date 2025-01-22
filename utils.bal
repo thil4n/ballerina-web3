@@ -1,6 +1,6 @@
 import ballerina/http;
 
-// Function to send a responce with JSON
+// Function to send a response with JSON
 public function jsonResponse(http:Caller caller, json payload, int statusCode) returns error? {
     http:Response resp = new;
     resp.setJsonPayload(payload);

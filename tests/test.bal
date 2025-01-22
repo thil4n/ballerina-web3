@@ -1,26 +1,18 @@
-import ballerina/io;
+
 import ballerina/test;
+import ballerina/io;
 
-Web3|error ethClient = check new ("http://127.0.0.1:7545");
+configurable string serviceUrl = ?;
 
-// Before Suite Function
-@test:BeforeSuite
-function beforeSuiteFunc() {
-    io:println("Starting ETHClient tests.");
-}
+final Web3 web3Client = check new (serviceUrl);
+// final Client twitter = check new Client(config, serviceUrl);
+
+
 
 // Test function for getting accounts
 @test:Config {}
 function testGetAccounts() returns error? {
+    json result = check  web3Client.getAccounts();
 
-    if ethClient is error {
-        return error("Failed to create ETHClient.");
-
-    }
-}
-
-// After Suite Function
-@test:AfterSuite
-function afterSuiteFunc() {
-    io:println("ETHClient tests completed.");
+    io:print(result);
 }

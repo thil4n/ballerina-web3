@@ -33,9 +33,9 @@ public class Web3 {
     /// Fetch the list of accounts available on the Ethereum node.
     ///
     /// # Returns
-    /// - `json`: A JSON object containing the list of accounts.
+    /// - `json`: A String array containing the list of accounts.
     /// - `error`: Error if there was an issue making the request.
-    public function getAccounts() returns json|error {
+    public function getAccounts() returns string[]|error {
         json requestBody = {
             "jsonrpc": "2.0",
             "method": "eth_accounts",
@@ -44,7 +44,9 @@ public class Web3 {
         };
 
         json response = check self.rpcClient->post("/", requestBody);
-        return response;
+        json result =  check response.result;
+        string[] accounts = check result.ensureType([]);
+        return accounts;
     }
 
     /// Create a smart contract instance by specifying the contract ABI file and address.
