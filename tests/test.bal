@@ -1,7 +1,7 @@
 import ballerina/io;
 import ballerina/test;
 
-ETHClient|error ethClient = check new ("http://127.0.0.1:7545");
+Web3|error ethClient = check new ("http://127.0.0.1:7545");
 
 // Before Suite Function
 @test:BeforeSuite
@@ -17,7 +17,6 @@ function testGetAccounts() returns error? {
         return error("Failed to create ETHClient.");
 
     }
-
 }
 
 // After Suite Function

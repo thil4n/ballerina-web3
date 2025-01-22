@@ -1,9 +1,9 @@
 import ballerina/http;
 
-/// ETHClient is an Ethereum JSON-RPC client for interacting with an Ethereum node.
+/// Web3 is an Ethereum JSON-RPC client for interacting with an Ethereum node.
 /// It provides methods to fetch account details, balances, transaction counts, 
 /// and various other blockchain-related information via JSON-RPC.
-public class ETHClient {
+public class Web3 {
 
     // The base URL of the Ethereum JSON-RPC API.
     private final string api;
