@@ -1,5 +1,9 @@
 import ballerina/http;
 
+type Response record {
+    string[] result;
+};
+
 /// Web3 is an Ethereum JSON-RPC client for interacting with an Ethereum node.
 /// It provides methods to fetch account details, balances, transaction counts, 
 /// and various other blockchain-related information via JSON-RPC.
@@ -43,10 +47,8 @@ public class Web3 {
             "id": 1
         };
 
-        json response = check self.rpcClient->post("/", requestBody);
-        json result =  check response.result;
-        string[] accounts = check result.ensureType([]);
-        return accounts;
+        Response response = check self.rpcClient->post("/", requestBody);
+        return response.result;
     }
 
     /// Create a smart contract instance by specifying the contract ABI file and address.
@@ -79,9 +81,10 @@ public class Web3 {
         };
 
         record {
-            string s;
+            string result;
         } response = check self.rpcClient->post("/", requestBody);
-        return response.s;
+
+        return response.result;
     }
 
     /// Get the latest block number on the Ethereum blockchain.
