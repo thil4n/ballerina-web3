@@ -72,7 +72,7 @@ public class Web3 {
     /// # Returns
     /// - `json`: The balance in Wei.
     /// - `error`: Error if there was an issue making the request.
-    public function getBalance(string address) returns string|error {
+    public function getBalance(string address) returns decimal|error {
         json requestBody = {
             "jsonrpc": "2.0",
             "method": "eth_getBalance",
@@ -84,7 +84,11 @@ public class Web3 {
             string result;
         } response = check self.rpcClient->post("/", requestBody);
 
-        return response.result;
+        string sanitizedHex = response.result.substring(2);
+
+        decimal balanceInWei = check hexToDecimal(sanitizedHex);
+
+        return balanceInWei;
     }
 
     /// Get the latest block number on the Ethereum blockchain.
