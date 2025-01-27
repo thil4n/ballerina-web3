@@ -1,7 +1,7 @@
 
 import ballerina/test;
 import ballerina/io;
-import ballerina/math;
+
 
 
 configurable string serviceUrl = ?;
@@ -17,7 +17,13 @@ function testGetAccounts() returns error? {
     string[] _ = check  web3Client.getAccounts();
 }
 
-
+function pow(decimal base, int exponent) returns decimal {
+    decimal value = 1;
+    foreach int i in 1...exponent {
+        value = value * base;
+    }
+    return value;
+}
 
 public function hexToDecimal(string str) returns decimal|error {
 
@@ -34,20 +40,25 @@ public function hexToDecimal(string str) returns decimal|error {
     foreach int i in 0 ..< length {
         string hexChar = hexString[i];
 
-        map<decimal> values = {
+        map<int> values = {
         "0": 0, "1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6,
         "7": 7, "8" : 8, "9" : 9, "A" : 10, "B": 11, "C" :12,
         "D" : 13, "E" : 14, "F" : 15
         };
 
-        float position = <float>(length - i) - 1; 
-        decimal power = <decimal>float:pow(16, position);
-        decimal value =  values[hexChar] ?: 0;
+        int position = (length - i) - 1; 
+        decimal power = pow(16, position);
+        int value =  values[hexChar] ?: 0;
     
         decimalValue +=  value * power;
     }
 
     return decimalValue;
+}
+
+public function weiToEther(decimal weiAmount) returns decimal {
+    decimal etherValue = weiAmount / 1e18;
+    return etherValue;
 }
 
 // Test function for getting accounts
@@ -57,7 +68,7 @@ function testGetBalance() returns error? {
 
     string sanitizedHex = balance.substring(2);
 
-    decimal priceWei = check hexToDecimal("3635c9adc5dea00000");
+    decimal priceWei = check hexToDecimal(sanitizedHex);
 
-    io:print(priceWei);
+    io:print(weiToEther(priceWei));
 }
