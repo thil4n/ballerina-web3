@@ -96,7 +96,7 @@ public class Web3 {
     /// # Returns
     /// - `json`: The block number.
     /// - `error`: Error if there was an issue making the request.
-    public function getBlockNumber() returns json|error {
+    public function getBlockNumber() returns decimal|error {
         json requestBody = {
             "jsonrpc": "2.0",
             "method": "eth_blockNumber",
@@ -104,8 +104,15 @@ public class Web3 {
             "id": 1
         };
 
-        json response = check self.rpcClient->post("/", requestBody);
-        return response;
+        record {
+            string result;
+        } response = check self.rpcClient->post("/", requestBody);
+
+        string sanitizedHex = response.result.substring(2);
+
+        decimal blockNumber = check hexToDecimal(sanitizedHex);
+
+        return blockNumber;
     }
 
     /// Get the number of transactions sent from an address.
@@ -116,7 +123,7 @@ public class Web3 {
     /// # Returns
     /// - `json`: The number of transactions sent from the address.
     /// - `error`: Error if there was an issue making the request.
-    public function getTransactionCount(string address) returns json|error {
+    public function getTransactionCount(string address) returns decimal|error {
         json requestBody = {
             "jsonrpc": "2.0",
             "method": "eth_getTransactionCount",
@@ -124,8 +131,15 @@ public class Web3 {
             "id": 1
         };
 
-        json response = check self.rpcClient->post("/", requestBody);
-        return response;
+        record {
+            string result;
+        } response = check self.rpcClient->post("/", requestBody);
+
+        string sanitizedHex = response.result.substring(2);
+
+        decimal txCount = check hexToDecimal(sanitizedHex);
+
+        return txCount;
     }
 
     /// Get details of a block by its block number.

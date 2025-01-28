@@ -1,4 +1,5 @@
 import ballerina/http;
+import ballerina/jballerina.java;
 
 // Function to send a response with JSON
 public function jsonResponse(http:Caller caller, json payload, int statusCode) returns error? {
@@ -73,14 +74,14 @@ public function decodeData(string response) returns json|error {
     return listedNFTs;
 }
 
-function pow(decimal base, int exponent) returns decimal {
-    decimal value = 1;
-    foreach int i in 1 ... exponent {
-        value = value * base;
-    }
-    return value;
-}
+function pow(decimal base, int exponent) returns decimal = @java:Method {
+    'class: "java.lang.Math"
+} external;
 
+# Description.
+#
+# + str - parameter description
+# + return - return value description
 public function hexToDecimal(string str) returns decimal|error {
 
     // Initialize the result

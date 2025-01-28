@@ -1,3 +1,4 @@
+import ballerina/data.jsondata;
 import ballerina/http;
 import ballerina/io;
 
@@ -22,6 +23,32 @@ public class Contract {
     public function init(http:Client rpcClient, string jsonFilePath, string address) returns error? {
         self.rpcClient = rpcClient;
         self.address = address;
+
+        json readJson = check io:fileReadJson(jsonFilePath);
+
+
+
+        ContractJson content = check jsondata:parseAsType(readJson);
+
+        foreach ContractMethod method in content.abi {
+            io:print(method.inputs);
+        }
+
+
+
+
+        map<function (any[]) returns any> methods = {}; // Dynamic method registry
+
+        methods["store"] = function (any[] args) returns any {
+        io:println("Storing value: ", args[0]);
+        return ();
+    };
+
+    _ = methods["store"];
+
+
+
+
     }
 
     /// Calls a read-only (view) function on the contract using `eth_call`.
