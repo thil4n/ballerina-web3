@@ -1,6 +1,7 @@
 import ballerina/data.jsondata;
 import ballerina/http;
 import ballerina/io;
+import ballerina/crypto;
 
 /// Represents a smart contract on the Ethereum blockchain.
 public class Contract {
@@ -12,7 +13,7 @@ public class Contract {
     private final http:Client rpcClient;
 
     /// A map to store contract methods and their ABI signatures (optional, not implemented here).
-    private final map<string> methods = {};
+    private final ContractMethod[] methods;
 
     /// Initializes the `Contract` instance.
     ///
@@ -26,69 +27,9 @@ public class Contract {
 
         json readJson = check io:fileReadJson(jsonFilePath);
 
-
-
         ContractJson content = check jsondata:parseAsType(readJson);
 
-        foreach ContractMethod method in content.abi {
-            io:print(method.inputs);
-        }
-
-
-
-
-        map<function (any[]) returns any> methods = {}; // Dynamic method registry
-
-        methods["store"] = function (any[] args) returns any {
-        io:println("Storing value: ", args[0]);
-        return ();
-    };
-
-    _ = methods["store"];
-
-
-
-
-    }
-
-    /// Calls a read-only (view) function on the contract using `eth_call`.
-    ///
-    /// # Parameters
-    /// - `functionHash`: The hash of the function signature.
-    /// - `params`: The parameters for the function call.
-    ///
-    /// # Returns
-    /// - The result of the function call as JSON.
-    /// - An error if the call fails or the response is invalid.
-    public function callViewFunction(string functionHash, json[] params) returns json|error {
-        string functionSelector = functionHash.substring(0, 8);
-        string encodedParams = self.encodeParameters(params);
-        string data = "0x" + functionSelector + encodedParams;
-
-        io:println("data: ", data);
-
-        json requestBody = {
-            "jsonrpc": "2.0",
-            "method": "eth_call",
-            "params": [
-                {"to": self.address, "data": data},
-                "latest"
-            ],
-            "id": 1
-        };
-
-        json response = check self.rpcClient->post("/", requestBody);
-        map<json>|error responseMap = response.ensureType();
-        if responseMap is error {
-            return error("Invalid response.");
-        }
-
-        string|error result = responseMap.get("result").ensureType(string);
-        if result is error {
-            return error("Invalid response.");
-        }
-
-        return result;
+        self.methods = content.abi;
     }
 
     /// Calls a state-changing function on the contract using `eth_sendTransaction`.
@@ -103,41 +44,53 @@ public class Contract {
     /// # Returns
     /// - The transaction hash as JSON.
     /// - An error if the call fails or the response is invalid.
-    public function callSetFunction(string functionHash, string fromAddress, json[] params, string gas, string gasPrice) returns json|error {
-        string functionSelector = functionHash.substring(0, 8);
-        string encodedParams = self.encodeParameters(params);
-        string data = "0x" + functionSelector + encodedParams;
+    public function call(string functionName,json[] parameters) returns json|error {
+        string functionSelector = self.generateFunctionSelector(functionName, ["uint256"]);
+        string encodedParameters = self.encodeParameters(parameters);
+        string data = "0x" + functionSelector + encodedParameters;
+
+        
 
         io:println("data: ", data);
 
-        json requestBody = {
-            "jsonrpc": "2.0",
-            "method": "eth_sendTransaction",
-            "params": [
-                {
-                    "from": fromAddress,
-                    "to": self.address,
-                    "gas": gas,
-                    "data": data
-                }
-            ],
-            "id": 1
-        };
+        // // json requestBody = {
+        // //     "jsonrpc": "2.0",
+        // //     "method": "eth_call",
+        // //     "params": [
+        // //         {"to": self.address, "data": data},
+        // //         "latest"
+        // //     ],
+        // //     "id": 1
+        // // };
 
-        json response = check self.rpcClient->post("/", requestBody);
-        map<json>|error responseMap = response.ensureType();
-        if responseMap is error {
-            return error("Invalid response.");
-        }
+        // json requestBody = {
+        //     "jsonrpc": "2.0",
+        //     "method": "eth_sendTransaction",
+        //     "params": [
+        //         {
+        //             "from": fromAddress,
+        //             "to": self.address,
+        //             "gas": gas,
+        //             "data": data
+        //         }
+        //     ],
+        //     "id": 1
+        // };
 
-        io:println("response: ", responseMap);
+        // json response = check self.rpcClient->post("/", requestBody);
+        // map<json>|error responseMap = response.ensureType();
+        // if responseMap is error {
+        //     return error("Invalid response.");
+        // }
 
-        string|error result = responseMap.get("result").ensureType(string);
-        if result is error {
-            return error("Invalid response.");
-        }
+        // io:println("response: ", responseMap);
 
-        return result;
+        // string|error result = responseMap.get("result").ensureType(string);
+        // if result is error {
+        //     return error("Invalid response.");
+        // }
+
+        // return result;
     }
 
     /// Estimates the gas required for a transaction using `eth_estimateGas`.
@@ -206,6 +159,21 @@ public class Contract {
             encodedParams += paramEncoded;
         }
         return encodedParams;
+    }
+
+    function generateFunctionSelector(string functionName, string[] parameters) returns string {
+
+        string str = functionName + "(";
+
+        foreach json param in parameters {
+            str += param;
+        }
+
+        str += ")";
+
+        byte[] hash = crypto:hashKeccak256(str.toBytes());
+
+        return hash.toBase16().substring(0, 8);
     }
 
     /// Converts a string to a hexadecimal representation (UTF-8 encoding).
